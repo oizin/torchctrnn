@@ -10,6 +10,8 @@ torchctrnn is a lightweight package for using neural ODE based continuous time R
 - Use `torchctrnn.ODERNNCell` like you would `torch.RNNCell`
 - Unified framework
 
+forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):   
+
 ## Installation
 
 torchctrnn requires pytorch and torchdiffeq to run

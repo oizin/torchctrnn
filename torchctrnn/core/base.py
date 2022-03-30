@@ -15,8 +15,8 @@ class UpdateNNBase(nn.Module):
         args = inspect.getfullargspec(UpdateNN.forward)[0]
         if (args != ['self', 'input', 'hidden']) and (args != ['self', 'input', 'hx']):
             raise NameError("UpdateNN's forward method should have arguments: 'input' and 'hidden' or 'input' and 'hx' (in that order)")
-        if 'hidden_size' not in dir(UpdateNN):
-            raise ValueError("UpdateNN should have attribute hidden_size")
+#         if 'hidden_size' not in dir(UpdateNN):
+#             raise ValueError("UpdateNN should have attribute hidden_size")
 
         self.net = UpdateNN
     
@@ -34,21 +34,28 @@ class UpdateNNBase(nn.Module):
         return output
                 
 class ODENetBase(nn.Module):
-    def __init__(self,ODENet):
+    def __init__(self,ODENet,dt_scaler):
         super(ODENetBase, self).__init__()
+        self.dt_scaler=dt_scaler
+        self.calls=0
+        self.track_calls=False
         
         args = inspect.getfullargspec(ODENet.forward)[0]
-        if args != ['self', 'input', 't', 'hidden']:
-            raise NameError("ODENet's forward method should have arguments: 'input', 't' and 'hidden' (in that order)")
-        if 'hidden_size' not in dir(ODENet):
-            raise ValueError("ODENet should have attribute hidden_size")
+        if args != ['self', 'input', 't', 'dt', 'hidden']:
+            raise NameError("ODENet's forward method should have arguments: 'input', 't' 'dt' and 'hidden' (in that order)")
+#         if 'hidden_size' not in dir(ODENet):
+#             raise ValueError("ODENet should have attribute hidden_size")
         
         self.net = ODENet
         self.input_ode = torch.zeros(1,1)
+        self.times = torch.zeros(1,1)
         self.time_gaps = torch.zeros(1,1)
                 
     def forward(self,t,hidden):
-        output = self.net(self.input_ode,t.reshape(1,1)*self.time_gaps,hidden)*self.time_gaps
+        if self.track_calls == True:
+            self.calls += 1
+        
+        output = self.net(self.input_ode,t.reshape(1,1)*self.time_gaps,self.time_gaps,hidden)*self.dt_scaler*self.time_gaps
         return output
 
 class ODERNNBase(nn.Module):
@@ -74,12 +81,16 @@ class ODERNNBase(nn.Module):
         Tensor
     """
     
-    def __init__(self,UpdateNN,ODENet,output_size=1, device='cpu'):
+    def __init__(self,UpdateNN,ODENet,device='cpu',output_size=1,method='dopri5',tol={'rtol':1e-2,'atol':1e-2},options=dict(),dt_scaler=1.0):
         super(ODERNNBase,self).__init__()
         
-        self.ODENet = ODENetBase(ODENet)
+        self.ODENet = ODENetBase(ODENet,dt_scaler)
         self.updateNN = UpdateNNBase(UpdateNN)
-        self.device=device
+        self.method = method
+        self.options = options
+        self.device = device
+        self.tol=tol
+        self.dt_scaler=dt_scaler
                 
     def forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):   
         """forward
@@ -107,11 +118,11 @@ class ODERNNBase(nn.Module):
         # enable input and time_gaps to be passed to ODENet.forward
         self.ODENet.input_ode = input_ode
         self.ODENet.time_gaps = times[:,1:2] - times[:,0:1]
-        if n_intermediate > 0:
+        if n_intermediate > 1:
             ts = torch.linspace(0,1,2+n_intermediate)
         else:
             ts = torch.tensor([0,1.0])
-        output = self.solve_ode(self.ODENet,hidden,ts.to(self.device))[1:]
+        output = self.solve_ode(self.ODENet,hidden,ts)[1:]
         return output
     
     def solve_ode(self,vector_field,h_0,time):
@@ -119,7 +130,7 @@ class ODERNNBase(nn.Module):
         solve_ode
         """
         # numerical integration until next time step
-        output = odeint(vector_field, h_0, time)
+        output = odeint(vector_field, h_0, time, rtol=self.tol['rtol'],atol=self.tol['atol'], method = self.method, options=self.options)
         return output    
     
     

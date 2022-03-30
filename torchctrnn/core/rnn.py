@@ -2,8 +2,8 @@ from .base import ODERNNBase
 import torch 
 import torch.nn as nn
 
-class LatentJumpODECell(ODERNNBase):
-    """LatentJumpODECell
+class neuralJumpODECell(ODERNNBase):
+    """neuralJumpODECell
     
     Args:
         param1 (int): The first parameter.
@@ -12,35 +12,35 @@ class LatentJumpODECell(ODERNNBase):
     Returns:
         The return value. True for success, False otherwise.
     """
-    def __init__(self,UpdateNN,ODENet,output_size=1,device='cpu'):
-        ODERNNBase.__init__(self,UpdateNN,ODENet,output_size,device)
-    
+    def __init__(self,UpdateNN,ODENet,input_size_update,output_size=1,device='cpu',method='dopri5',tol={'rtol':1e-2,'atol':1e-2},options=dict(),dt_scaler=1.0):
+        ODERNNBase.__init__(self,UpdateNN,ODENet,output_size,device,method,tol,options,dt_scaler)
+            
 class ODERNNCell(ODERNNBase):
     """
     ODERNNCell
     """
-    def __init__(self,ODENet,input_size_update,output_size=1,device='cpu'):
+    def __init__(self,ODENet,input_size_update,output_size=1,device='cpu',method='dopri5',tol={'rtol':1e-2,'atol':1e-2},options=dict(),dt_scaler=1.0):
         hidden_size = ODENet.hidden_size
         rnn = nn.RNNCell(input_size_update,hidden_size)
-        ODERNNBase.__init__(self,rnn,ODENet,output_size,device)
+        ODERNNBase.__init__(self,rnn,ODENet,output_size,device,method,tol,options,dt_scaler)
         
 class ODEGRUCell(ODERNNBase):
     """
     ODEGRUCell
     """
-    def __init__(self,ODENet,input_size_update,output_size=1,device='cpu'):
+    def __init__(self,ODENet,input_size_update,output_size=1,device='cpu',method='dopri5',tol={'rtol':1e-2,'atol':1e-2},options=dict(),dt_scaler=1.0):
         hidden_size = ODENet.hidden_size
         rnn = nn.GRUCell(input_size_update,hidden_size)
-        ODERNNBase.__init__(self,rnn,ODENet,output_size,device)
+        ODERNNBase.__init__(self,rnn,ODENet,output_size,device,method,tol,options,dt_scaler)
         
 class ODELSTMCell(ODERNNBase):
     """
     ODELSTMCell
     """
-    def __init__(self,ODENet,input_size_update,output_size=1,device='cpu'):
+    def __init__(self,ODENet,input_size_update,output_size=1,device='cpu',method='dopri5',tol={'rtol':1e-2,'atol':1e-2},options=dict(),dt_scaler=1.0):
         hidden_size = ODENet.hidden_size
         rnn = nn.LSTMCell(input_size_update,hidden_size)
-        ODERNNBase.__init__(self,rnn,ODENet,output_size,device)
+        ODERNNBase.__init__(self,rnn,ODENet,output_size,device,method,tol,options,dt_scaler)
         
     def forward_update(self,input_update,h_0):
         """
@@ -49,7 +49,7 @@ class ODELSTMCell(ODERNNBase):
         output = self.updateNN(input_update,h_0)
         return output
     
-    def forward(self,input_update,h_0,times,input_ode=None):   
+    def forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):   
         """ 
         forward
         """
@@ -58,5 +58,5 @@ class ODELSTMCell(ODERNNBase):
         # discrete update/jump as new information receieved
         hidden,cell = self.forward_update(input_update,h_0)
         # use ODENet to 'evolve' hidden state (but not cell state) to next timestep
-        output = self.forward_ode(hidden,times,input_ode)
+        output = self.forward_ode(hidden,times,input_ode,n_intermediate)
         return output,cell
