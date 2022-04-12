@@ -55,7 +55,7 @@ class ODENetBase(nn.Module):
         if self.track_calls == True:
             self.calls += 1
         
-        output = self.net(self.input_ode,t.reshape(1,1)*self.time_gaps,self.time_gaps,hidden)*self.dt_scaler*self.time_gaps
+        output = self.net(self.input_ode,self.times[:,0]+t.reshape(1,1)*self.time_gaps,self.time_gaps,hidden)*self.dt_scaler*self.time_gaps
         return output
 
 class ODERNNBase(nn.Module):
