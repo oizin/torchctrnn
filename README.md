@@ -4,6 +4,10 @@
 
 torchctrnn is a lightweight package for using neural ODE based continuous time RNNs and related methods with pytorch and torchdiffeq
 
+## What is a continuous time RNN?
+
+picture...
+
 ## Features
 
 - Use `torchctrnn.ODERNNCell` similar to how you would use `torch.RNNCell`

@@ -1,6 +1,8 @@
 from .base import ODERNNBase
 import torch 
+from torch import Tensor
 import torch.nn as nn
+from typing import Tuple
 
 class neuralJumpODECell(ODERNNBase):
     """neuralJumpODECell
@@ -42,14 +44,14 @@ class ODELSTMCell(ODERNNBase):
         rnn = nn.LSTMCell(input_size_update,hidden_size)
         ODERNNBase.__init__(self,rnn,ODENet,output_size,device,method,tol,options,dt_scaler)
         
-    def forward_update(self,input_update,h_0):
+    def forward_update(self,input_update : Tensor,h_0 : Tuple[Tensor,Tensor]) -> Tensor:
         """
         forward_update
         """
         output = self.updateNN(input_update,h_0)
         return output
     
-    def forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):   
+    def forward(self,input_update : Tensor,h_0 : Tuple[Tensor,Tensor],times,input_ode=None,n_intermediate=0) -> Tuple[Tensor,Tensor]:   
         """ 
         forward
         """

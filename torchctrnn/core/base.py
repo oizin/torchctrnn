@@ -58,8 +58,51 @@ class ODENetBase(nn.Module):
         output = self.net(self.input_ode,self.times[:,0]+t.reshape(1,1)*self.time_gaps,self.time_gaps,hidden)*self.dt_scaler*self.time_gaps
         return output
 
-class ODERNNBase(nn.Module):
-    """Base class for continuous time recurrent neural network (RNN) (e.g. vanilla RNNs, Jump NNs, GRUs and LSTMs)
+class NeuralFlowBase(nn.Module):
+    def __init__(self,NeuralFlow):
+        
+        args = inspect.getfullargspec(NeuralFlow.forward)[0]
+        if args != ['self', 'input', 't', 'dt', 'hidden']:
+            raise NameError("NeuralFlow's forward method should have arguments: 'input', 't' 'dt' and 'hidden' (in that order)")
+        
+        self.flow = NeuralFlow
+        self.input_ode = torch.zeros(1,1)
+        self.times = torch.zeros(1,1)
+        self.time_gaps = torch.zeros(1,1)
+                
+    def forward(self,t,hidden):
+        output = self.net(self.input_ode,self.times[:,0]+t.reshape(1,1)*self.time_gaps,self.time_gaps,hidden)
+        return output
+
+class CTRNNBase(nn.Module):
+
+    def __init__(self,UpdateNN,device):
+        super(CTRNNBase,self).__init__()
+
+        self.updateNN = UpdateNNBase(UpdateNN)
+        self.device = device
+
+    def forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):
+        """forward
+        
+        Args:
+            times (): 2d t0 and t1
+        """
+        # discrete update/jump as new information receieved
+        hidden = self.forward_update(input_update,h_0)
+        # use vector field to 'evolve' hidden state
+        output = self.forward_ode(hidden,times,input_ode,n_intermediate)
+        return output
+
+    def forward_update(self,input_update,h_0):
+        """
+        forward_update
+        """
+        output = self.updateNN(input_update,h_0)
+        return output
+
+class ODERNNBase(CTRNNBase):
+    """Base class for ODE recurrent neural network (RNN) (e.g. vanilla RNNs, Jump NNs, GRUs and LSTMs)
     
     Args:
         ODENet (nn.Module): The neural network
@@ -82,35 +125,14 @@ class ODERNNBase(nn.Module):
     """
     
     def __init__(self,UpdateNN,ODENet,device='cpu',output_size=1,method='dopri5',tol={'rtol':1e-2,'atol':1e-2},options=dict(),dt_scaler=1.0):
-        super(ODERNNBase,self).__init__()
+        super(ODERNNBase,self).__init__(UpdateNN,device)
         
         self.ODENet = ODENetBase(ODENet,dt_scaler)
-        self.updateNN = UpdateNNBase(UpdateNN)
         self.method = method
         self.options = options
-        self.device = device
         self.tol=tol
         self.dt_scaler=dt_scaler
-                
-    def forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):   
-        """forward
-        
-        Args:
-            times (): 2d t0 and t1
-        """
-        # discrete update/jump as new information receieved
-        hidden = self.forward_update(input_update,h_0)
-        # use ODENet to 'evolve' state to next timestep
-        output = self.forward_ode(hidden,times,input_ode,n_intermediate)
-        return output
-    
-    def forward_update(self,input_update,h_0):
-        """
-        forward_update
-        """
-        output = self.updateNN(input_update,h_0)
-        return output
-
+                    
     def forward_ode(self,hidden,times,input_ode=None,n_intermediate=0):
         """
         forward_ode
@@ -122,7 +144,7 @@ class ODERNNBase(nn.Module):
             ts = torch.linspace(0,1,2+n_intermediate)
         else:
             ts = torch.tensor([0,1.0])
-        output = self.solve_ode(self.ODENet,hidden,ts)[1:]
+        output = self.solve_ode(self.ODENet,hidden,ts)
         return output
     
     def solve_ode(self,vector_field,h_0,time):
@@ -130,9 +152,49 @@ class ODERNNBase(nn.Module):
         solve_ode
         """
         # numerical integration until next time step
+        # torchdiffeq backend
         output = odeint(vector_field, h_0, time, rtol=self.tol['rtol'],atol=self.tol['atol'], method = self.method, options=self.options)
+        output = output[1:].squeeze(0)
         return output    
     
+class FlowRNNBase(CTRNNBase):
+    """Base class for Flow recurrent neural network (RNN) (e.g. vanilla RNNs, Jump NNs, GRUs and LSTMs)
     
+    Args:
+        NeuralFlow (nn.Module): The *solution* to an ordinary differential equation
+        UpdateNN (nn.Module): The neural network
     
+    Structure of NeuralFlow:
+            output_size: dimension of output
+            input_update_size: dimension of update features (can be larger than output)
+            input_ode_size: dimension of features you wish to pass to ODENet
+            hidden_size: dimension of hidden state
+
+    Structure of UpdateNN:
+            output_size: dimension of output
+            input_update_size: dimension of update features (can be larger than output)
+            input_ode_size: dimension of features you wish to pass to ODENet
+            hidden_size: dimension of hidden state
+            
+    Return:
+        Tensor
+    """
     
+    def __init__(self,UpdateNN,NeuralFlow,device='cpu',output_size=1,method='dopri5',tol={'rtol':1e-2,'atol':1e-2},options=dict(),dt_scaler=1.0):
+        super(FlowRNNBase,self).__init__(UpdateNN,device)
+        
+        self.vector_field = NeuralFlowBase(NeuralFlow)
+        self.method = method
+        self.options = options
+        self.tol=tol
+        self.dt_scaler=dt_scaler
+                
+    def forward_ode(self,hidden,times,input_ode=None,n_intermediate=0):
+        """
+        forward_ode
+        """
+        # enable input and time_gaps to be passed to the ODE
+        self.ODENet.input_ode = input_ode
+        self.ODENet.time_gaps = times[:,1:2] - times[:,0:1]
+        output = self.vector_field.forward(hidden,times)
+        return output
