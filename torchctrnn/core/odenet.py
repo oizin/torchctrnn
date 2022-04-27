@@ -46,23 +46,23 @@ class ODENet(nn.Module):
 
         # check what arguments func (the vector field) takes:
         args = inspect.getfullargspec(vector_field.forward)[0]
-        check_args = ['input', 't', 'hidden']
+        check_args = ['self','input', 't', 'hidden']
         assert 'hidden' in args
         # check for ['input', 't', 'hidden'] pattern in forward
         extra_args = [a for a in args if a not in check_args]
         if len(extra_args) > 0:
-            raise Warning("ODENet's forward method only takes args: hidden,t and input. You have {}".format(extra_args))
-        check_res = [chk for chk in check_args if chk not in args]
+            raise Warning("ODENet's forward method only takes args: hidden,t and input. You also have {}".format(extra_args))
         # check for ['input', 't', 'hidden'] pattern in forward
+        check_res = [chk for chk in check_args if chk not in args]
         if len(check_res) > 0:
-            raise Warning("ODENet's forward method missing args: {}. These are assumed not applicable".format(check_res))
+            print("ODENet's forward method missing args: {}. These are assumed not applicable".format(check_res))
         if 'input' in args:
             self.has_input_arg = True
         if 't' in args:
             self.has_t_arg = True
 
-    def forward(self,**inputs):
-        output = self.vector_field.forward(*inputs)
+    def forward(self,*args,**kwargs):
+        output = self.vector_field.forward(*args,**kwargs)
         return output
 
 
@@ -86,7 +86,7 @@ class ODENetfromSequential(nn.Module):
         # infer hidden size
         list(vector_field.parameters())
 
-    def forward(self,**inputs):
-        z = torch.cat(tuple(inputs.values()),1) 
+    def forward(self,*args,**kwargs):
+        z = torch.cat(args + tuple(kwargs.values()),1) 
         output = self.vector_field.forward(z)  
         return output

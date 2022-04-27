@@ -1,16 +1,71 @@
 import unittest
 import torch
-import torchctrnn
+import torch.nn as nn
+from torchctrnn import ODENetfromSequential, ODENet
 
 class TestODENet(unittest.TestCase):
-    def pass_kwargs_to_odenet(self):
-        3
 
-    def test_rnn_batch_1(self):
-        x = torch.randn(1,10,10)
+    def setUp(self) -> None:
+        self.input_size = 10
+        self.hidden_size = 4
+        # hidden states
+        self.h_1 = torch.randn((1,self.hidden_size))
+        self.h_32 = torch.randn((32,self.hidden_size))
+        # times
+        self.times_1 = torch.rand(1,1)
+        self.times_32 = torch.rand(32,1)
+        # exogeneous inputs
+        self.input_1 = torch.randn((1,self.input_size))
+        self.input_32 = torch.randn((32,self.input_size))
 
-    def test_rnn_batch_32(self):
-        x = torch.randn(32,10,10)
+    def test_odenet_seq_hidden(self):
+        # ODENetfromSequential approach
+        func = nn.Sequential(
+            nn.Linear(self.hidden_size, 50),
+            nn.Tanh(),
+            nn.Linear(50, self.hidden_size)
+        )
+        odenet = ODENetfromSequential(func)
+        self.assertIsInstance(odenet.forward(hidden=self.h_1),torch.Tensor)
+        self.assertIsInstance(odenet.forward(hidden=self.h_32),torch.Tensor)
+        self.assertIsInstance(odenet.forward(self.h_1),torch.Tensor)
+        self.assertIsInstance(odenet.forward(self.h_32),torch.Tensor)
+    
+    def test_odenet_seq_hidden_t(self):
+        # ODENetfromSequential approach
+        func = nn.Sequential(
+            nn.Linear(self.hidden_size+1, 50),
+            nn.Tanh(),
+            nn.Linear(50, self.hidden_size)
+        )
+        odenet = ODENetfromSequential(func)
+        self.assertIsInstance(odenet.forward(hidden=self.h_1,t=self.times_1),torch.Tensor)
+        self.assertIsInstance(odenet.forward(hidden=self.h_32,t=self.times_32),torch.Tensor)
+        self.assertIsInstance(odenet.forward(self.h_1,self.times_1),torch.Tensor)
+        self.assertIsInstance(odenet.forward(self.h_32,self.times_32),torch.Tensor)
+
+    def test_odenet_hidden(self):
+        # ODENet approach
+        class Func(nn.Module):
+            def __init__(self,hidden_size):
+                super().__init__()
+
+                self.hidden_size = hidden_size
+                self.net = nn.Sequential(
+                    nn.Linear(hidden_size, 50),
+                    nn.Tanh(),
+                    nn.Linear(50, hidden_size),
+                )
+
+            def forward(self,hidden):
+                return self.net(hidden)
+        odenet = ODENet(Func(self.hidden_size))
+        self.assertIsInstance(odenet.forward(hidden=self.h_1),torch.Tensor)
+        self.assertIsInstance(odenet.forward(hidden=self.h_32),torch.Tensor)
+        self.assertIsInstance(odenet.forward(self.h_1),torch.Tensor)
+        self.assertIsInstance(odenet.forward(self.h_32),torch.Tensor)
+
+
 
 
 
