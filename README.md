@@ -1,5 +1,7 @@
-# torchctrnn
-# Under development
+# torchctrnn (Under development)
+
+![example workflow](https://github.com/oizin/torchctrnn/actions/workflows/run_test.yaml/badge.svg)
+
 ## _Continuous time RNNs in pytorch_
 
 torchctrnn is a lightweight package for using neural ODE based continuous time RNNs and related methods with pytorch and torchdiffeq
