@@ -32,4 +32,4 @@ jobs:
       run: |
         source $HOME/.poetry/env
         poetry run coverage run --source=./tests -m unittest discover -s ./tests
-        coverage report -m
+        poetry run coverage report -m
