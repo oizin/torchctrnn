@@ -33,6 +33,6 @@ jobs:
         source $HOME/.poetry/env
         poetry run coverage run --source=./tests -m unittest discover -s ./tests
         poetry run coverage report -m
-        poetry coverage xml
+        poetry run coverage xml
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v2
