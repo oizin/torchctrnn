@@ -1,4 +1,6 @@
+# python
 .ipynb_checkpoints
 *__pycache__*
 
+# poetry
 poetry.lock
