@@ -1,6 +1,11 @@
 # torchctrnn (Under development)
 
-![Test results](https://github.com/oizin/torchctrnn/actions/workflows/run_tests.yaml/badge.svg)
+
+<!-- badges: start -->
+
+[![Test results](https://github.com/oizin/torchctrnn/actions/workflows/run_tests.yaml/badge.svg)](https://github.com/oizin/torchctrnn/actions/workflows/run_tests.yaml)
+[![codecov](https://codecov.io/github/oizin/torchctrnn/branch/main/graphs/badge.svg)](https://codecov.io/github/oizin/torchctrnn)
+<!-- badges: end -->
 
 ## _Continuous time RNNs in pytorch_
 
