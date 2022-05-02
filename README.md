@@ -24,6 +24,11 @@ See the examples folder.
 
 torchctrnn requires pytorch and torchdiffeq to run
 
+## Tests
+
+coverage run --source=./tests -m unittest discover -s ./tests
+coverage report -m
+
 ## Development
 
 Want to contribute? Get in touch.
