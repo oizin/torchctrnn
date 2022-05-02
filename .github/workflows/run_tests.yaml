@@ -6,7 +6,7 @@ on:
     branches:
       - main
 
-name: Run tests
+name: Tests
 
 jobs:
   build:
@@ -34,4 +34,4 @@ jobs:
         poetry run coverage run --source=./tests -m unittest discover -s ./tests
         poetry run coverage report -m
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3

@@ -1,6 +1,8 @@
 # torchctrnn (Under development)
 
-![example workflow](https://github.com/oizin/torchctrnn/actions/workflows/run_test.yaml/badge.svg)
+![Test results](https://github.com/oizin/torchctrnn/actions/workflows/run_tests.yaml/badge.svg)
+![example workflow](https://github.com/oizin/torchctrnn/actions/workflows/run_tests.yaml/badge.svg)
+
 
 ## _Continuous time RNNs in pytorch_
 
