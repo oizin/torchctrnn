@@ -1,40 +1,37 @@
-# torchctrnn (Under development)
+# torchctrnn
 
 
 <!-- badges: start -->
 
 [![Test results](https://github.com/oizin/torchctrnn/actions/workflows/run_tests.yaml/badge.svg)](https://github.com/oizin/torchctrnn/actions/workflows/run_tests.yaml)
 [![codecov](https://codecov.io/github/oizin/torchctrnn/branch/main/graphs/badge.svg)](https://codecov.io/github/oizin/torchctrnn)
+[![Documentation Status](https://readthedocs.org/projects/torchctrnn/badge/?version=latest)](https://torchctrnn.readthedocs.io/en/latest/?badge=latest)
 <!-- badges: end -->
 
-## _Continuous time RNNs in pytorch_
+## Continuous time RNNs in PyTorch
 
-torchctrnn is a lightweight package for using neural ODE based continuous time RNNs and related methods with pytorch and torchdiffeq
-
-## What is a continuous time RNN?
-
-picture...
-
-## Features
-
-- Use `torchctrnn.ODERNNCell` similar to how you would use `torch.RNNCell`
-
-```python
-
-
-forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):   
-```
-
-See the examples folder.
+torchctrnn is a PyTorch library dedicated to continuous time recurrent neural networks.
 
 ## Installation
 
-torchctrnn requires pytorch and torchdiffeq to run
+To install latest on GitHub:
 
-## Tests
+```
+pip install git+https://github.com/oizin/torchctrnn
+```
 
-coverage run --source=./tests -m unittest discover -s ./tests
-coverage report -m
+## Basic usage
+
+- Use `torchctrnn.ODERNNCell` similar to how you would use `torch.RNNCell` with the 
+addition of specifying the neural ODE
+
+```python
+forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):   
+```
+
+## Documentation
+
+
 
 ## Development
 

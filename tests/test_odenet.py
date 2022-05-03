@@ -66,8 +66,5 @@ class TestODENet(unittest.TestCase):
         self.assertIsInstance(odenet.forward(self.h_32),torch.Tensor)
 
 
-
-
-
 if __name__ == '__main__':
     unittest.main()
