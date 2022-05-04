@@ -25,15 +25,23 @@ import inspect
 #             self.has_t_arg = True
 #         self.net = ODENet
 
+class NeuralODE(nn.Module):
+    def __init__(vector_field):
+        if type(vector_field) == nn.Sequential:
+            # init something
+            pass
+        elif type(vector_field) == nn.Module:
+            # init something
+            pass
 
-class ODENet(nn.Module):
+class NeuralODEfromModule(nn.Module):
     def __init__(self,vector_field:nn.Module,backend='torchdiffeq',solver='euler',atol:float=1e-3, rtol:float=1e-3,**solver_options):
         """
         TODO
         ...
         A feedforward network
         """
-        super(ODENet,self).__init__()
+        super(NeuralODE,self).__init__()
         self.vector_field = vector_field
         self.solver = solver
         self.solver_options=solver_options
@@ -66,14 +74,14 @@ class ODENet(nn.Module):
         return output
 
 
-class ODENetfromSequential(nn.Module):
+class NeuralODEfromSequential(nn.Module):
     def __init__(self,vector_field:nn.Sequential,time_dependent=False,data_dependent=False,backend='torchdiffeq',solver='euler',atol:float=1e-3, rtol:float=1e-3,**solver_options):
         """
         TODO
         ...
         A feedforward network
         """
-        super(ODENetfromSequential,self).__init__()
+        super(NeuralODEfromSequential,self).__init__()
         self.vector_field = vector_field
         self.solver = solver
         self.solver_options=solver_options

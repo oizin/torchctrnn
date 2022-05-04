@@ -1,13 +1,12 @@
 import torch 
 from torch import Tensor
 import torch.nn as nn
-from torchctrnn.core.odenet import ODENetfromSequential
 from torchdiffeq import odeint_adjoint
 from torchdiffeq import odeint
 import inspect
 from typing import Tuple, Callable,Union
 from .ctrnn import _CTRNNBase
-from .odenet import ODENet,ODENetfromSequential
+from .odenet import NeuralODE,NeuralODEfromSequential
 
 # Notes
 # training data of shape: (batch,seq,features)

@@ -1,8 +1,12 @@
 from ..core.odernn import _ODERNNBase
+from ..core.ctrnn import _CTRNNBase
+from ..core.odenet import NeuralODE
+from ..core.flownet import NeuralFlow
+
 import torch 
 from torch import Tensor
 import torch.nn as nn
-from typing import Tuple
+from typing import Tuple,Union
 
 class neuralJumpODECell(_ODERNNBase):
     """neuralJumpODECell
@@ -16,7 +20,21 @@ class neuralJumpODECell(_ODERNNBase):
     """
     def __init__(self,UpdateNN,ODENet,device=None):
         _ODERNNBase.__init__(self,UpdateNN,ODENet,device)
-            
+
+class CTRNNCell(_CTRNNBase):
+    """
+    CTRNNCell
+
+    TODO
+    """
+    def __init__(self,VectorField:Union[NeuralODE,NeuralFlow],input_size_update:int,hidden_size:int,device=None):
+        rnn = nn.RNNCell(input_size_update,hidden_size,device)
+        assert isinstance(VectorField,(NeuralODE,NeuralFlow))
+        if isinstance(VectorField,NeuralODE):
+            _ODERNNBase.__init__(self,rnn,VectorField,device)
+        elif isinstance(VectorField,NeuralFlow):
+            _FlowRNNBase.__init__(self,rnn,VectorField,device)
+
 class ODERNNCell(_ODERNNBase):
     """
     ODERNNCell
