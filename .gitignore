@@ -4,3 +4,6 @@
 
 # poetry
 poetry.lock
+
+# testing
+.coverage
