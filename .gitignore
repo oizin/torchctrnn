@@ -7,3 +7,6 @@ poetry.lock
 
 # testing
 .coverage
+
+# work file
+test.ipynb

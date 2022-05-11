@@ -32,6 +32,11 @@ forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):
 ## Documentation
 
 
+## Testing
+
+```python
+pytest
+```
 
 ## Development
 
