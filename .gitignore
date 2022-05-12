@@ -8,5 +8,5 @@ poetry.lock
 # testing
 .coverage
 
-# work file
+# wip file
 test.ipynb

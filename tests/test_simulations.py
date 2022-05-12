@@ -3,9 +3,9 @@ import torch
 import torch.nn as nn
 from torchctrnn.data.simulations import GlucoseData
 
-class TestODENet(unittest.TestCase):
+class TestGLucose(unittest.TestCase):
 
-    def test_glucose(self):
+    def test_seed(self):
         sim1 = GlucoseData(seed=1234)
         df1 = sim1.simulate(1)
         df2 = sim1.simulate(1)
