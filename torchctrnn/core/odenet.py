@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch import Tensor
+from . import utils
 from typing import Callable,Union
 import inspect
 
@@ -18,7 +19,7 @@ def _inspect_nn_args(args):
 
 class NeuralODE(nn.Module):
 
-    def __init__(self,vector_field:Union[nn.Module,nn.Sequential],time_dependent=None,data_dependent=None,backend='torchdiffeq',solver='euler',atol:float=1e-3, rtol:float=1e-3,**solver_options):
+    def __init__(self,vector_field:Union[nn.Module,nn.Sequential],time_func='none',time_dependent=None,data_dependent=None,backend='torchdiffeq',solver='dopri5',atol:float=1e-3, rtol:float=1e-3,solver_options={}):
         super(NeuralODE,self).__init__()
         # check arguments
         if type(vector_field) == nn.Sequential:
@@ -42,6 +43,10 @@ class NeuralODE(nn.Module):
         self.has_input_arg=data_dependent
         self.atol = atol
         self.rtol = rtol
+        if isinstance(time_func,str):
+            self.time_func = utils.time_func(time_func)
+        elif callable(time_func):
+            self.time_func = time_func
 
     def forward(self,*args,**kwargs):
         if self.sequential:

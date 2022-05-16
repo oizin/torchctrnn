@@ -10,3 +10,9 @@ def activation_func(activation):
         ['selu', nn.SELU(inplace=True)],
         ['none', nn.Identity()]
     ])[activation]
+
+def time_func(func):
+    return  nn.ModuleDict([
+        ['tanh', nn.Tanh()],
+        ['none', nn.Identity()]
+    ])[func]

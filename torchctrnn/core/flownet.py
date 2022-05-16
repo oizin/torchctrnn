@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch import Tensor
 from typing import Callable
 from torch.nn.utils.parametrizations import spectral_norm
-from utils import activation_func
+from .utils import activation_func
 
 def _check_lipschitz(net):
     return None

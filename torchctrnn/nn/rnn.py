@@ -40,26 +40,38 @@ class ODERNNCell(_ODERNNBase):
     ODERNNCell
 
     TODO
+
+    Example:  
+    ```
+    func = nn.Sequential(  
+        nn.Linear(4, 50),  
+        nn.Tanh(),  
+        nn.Linear(50,4)  
+    )
+    odenet = NeuralODE(func,time_dependent=False,data_dependent=False)  
+    odernn = ODERNNCell(odenet,10,4)  
+    odernn(input_update,hidden,times)  
+    ```
     """
-    def __init__(self,ODENet,input_size_update:int,hidden_size:int,device=None):
+    def __init__(self,NeuralODE,input_size_update:int,hidden_size:int,device=None):
         rnn = nn.RNNCell(input_size_update,hidden_size,device)
-        _ODERNNBase.__init__(self,rnn,ODENet,device)
+        _ODERNNBase.__init__(self,rnn,NeuralODE,device)
         
 class ODEGRUCell(_ODERNNBase):
     """
     ODEGRUCell
     """
-    def __init__(self,ODENet,input_size_update:int,hidden_size:int,device=None):
+    def __init__(self,NeuralODE,input_size_update:int,hidden_size:int,device=None):
         rnn = nn.GRUCell(input_size_update,hidden_size,device)
-        _ODERNNBase.__init__(self,rnn,ODENet,device)
+        _ODERNNBase.__init__(self,rnn,NeuralODE,device)
         
 class ODELSTMCell(_ODERNNBase):
     """
     ODELSTMCell
     """
-    def __init__(self,ODENet,input_size_update:int,hidden_size:int,device=None):
+    def __init__(self,NeuralODE,input_size_update:int,hidden_size:int,device=None):
         rnn = nn.LSTMCell(input_size_update,hidden_size,device)
-        _ODERNNBase.__init__(self,rnn,ODENet,device)
+        _ODERNNBase.__init__(self,rnn,NeuralODE,device)
         
     def forward_update(self,input_update : Tensor,hidden : Tuple[Tensor,Tensor]) -> Tensor:
         """

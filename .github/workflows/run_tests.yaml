@@ -34,5 +34,6 @@ jobs:
         poetry run coverage run --source=./tests -m unittest discover -s ./tests
         poetry run coverage report -m
         poetry run coverage xml
+        poetry run pytest --nbmake ./tutorials
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v2

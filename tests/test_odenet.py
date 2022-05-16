@@ -45,6 +45,9 @@ class TestNeuralODE(unittest.TestCase):
         self.assertIsInstance(odenet.forward(hidden=self.h_32,t=self.times_32),torch.Tensor)
         self.assertIsInstance(odenet.forward(self.h_1,self.times_1),torch.Tensor)
         self.assertIsInstance(odenet.forward(self.h_32,self.times_32),torch.Tensor)
+        # check dimensions
+        self.assertEqual(odenet.forward(hidden=self.h_1,t=self.times_1).shape, torch.Size([1,self.hidden_size]))
+        self.assertEqual(odenet.forward(hidden=self.h_32,t=self.times_32).shape, torch.Size([32,self.hidden_size]))
 
     def test_node_hidden(self):
         # ODENet approach

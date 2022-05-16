@@ -31,11 +31,15 @@ forward(self,input_update,h_0,times,input_ode=None,n_intermediate=0):
 
 ## Documentation
 
+https://torchctrnn.readthedocs.io/en/latest/
 
 ## Testing
 
 ```python
+# library
 pytest
+# tutorials
+pytest --nbmake ./tutorials
 ```
 
 ## Development
