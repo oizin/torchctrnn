@@ -1,4 +1,4 @@
-Welcome to torctrnn's documentation!
+Welcome to torchctrnn's documentation!
 ===================================
 
 torchctrnn is a PyTorch library dedicated to continuous time recurrent neural networks.
@@ -14,7 +14,9 @@ Contents
 --------
 
 .. toctree::
+   :maxdepth: 1
 
    usage
-   ./tutorials/data-simulations
+   tutorials/data-simulations
+   tutorials/time-series-classification-sine-waves
    
