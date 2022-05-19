@@ -5,8 +5,112 @@ import math
 from numba import jit
 import typing
 
+# globals
+DT = 1e-2
+
+# Ornstein Uhlenbeck ----------------------------------------------
+
 @jit(nopython=True)
-def _temporal_process(glucose:float,insulin_dose:float):
+def _OE_simulate_trajectory():
+
+    dt = 0.01
+    maxtime = 24.0
+    n_iter = int(maxtime / dt) + 1
+    saveat = range(0,n_iter,int(0.1 / dt))
+
+    # output container
+    column_name_pos = {'t':0,
+                       'y_t':1,
+                       'obs':2}
+    output = np.zeros((len(saveat), len(column_name_pos)))
+    output[:,column_name_pos['t']] = np.linspace(0,maxtime,len(saveat))
+
+    # set parameters
+    sigma = np.random.lognormal()
+    mu = np.random.normal()
+    theta = np.random.normal(0.5,0.01)
+    
+    # time 0
+    y_t = np.random.normal()
+    iter = 0
+    save_step = 0
+    iter_measure = 0
+    obs = False
+
+    ## loop through time steps
+    while iter <= n_iter:
+        if iter == iter_measure:
+            obs = True
+            iter_measure = min(iter + np.round(np.random.poisson(200),-1),n_iter)
+        else:
+            obs = False
+
+        dW = np.random.normal(0,dt)
+        d_y_deter = (theta*(mu - y_t))*dt 
+        d_y_stoch = np.sqrt(2*theta*sigma**2)*dW
+        d_y = d_y_deter + d_y_stoch
+        y_t = y_t + d_y
+
+        if iter in saveat:
+            output[save_step,column_name_pos['y_t']] = y_t
+            output[save_step,column_name_pos['obs']] = obs
+            save_step += 1
+        iter += 1
+
+    return output
+
+@jit(nopython=True)
+def _OE_simulate(N:int,seed:int=None):
+
+    np.random.seed(seed)
+
+    # output container
+    n_iter = int(24.0 / 1e-2) + 1
+    saveat = range(0,n_iter,int(0.1 / 1e-2))
+    n_save_steps = len(saveat)
+    output = np.zeros((n_save_steps*N, 3))
+
+    for i in range(N):
+        output_i = _OE_simulate_trajectory()
+        lower = i*n_save_steps
+        upper = (i+1)*n_save_steps
+        output[lower:upper,:] = output_i
+
+    return output
+
+class OrnsteinUhlenbeckData:
+    
+    def __init__(self,seed=None):
+        """
+        Args:
+            seed
+        """
+        # arguments
+        self.seed = seed
+
+        # other
+        self.dt = 0.01
+        self.maxtime = 24.0
+        self.columns = ['t','y_t','obs']
+
+    def simulate(self,N:int=100):
+
+        # output container
+        n_iter = int(self.maxtime / self.dt) + 1
+        saveat = range(0,n_iter,int(0.1 / self.dt))
+        n_save_steps = len(saveat)
+
+        output = _OE_simulate(N,self.seed)
+
+        df = pd.DataFrame(output,columns=self.columns)
+        df['id'] = np.repeat(range(0,N),n_save_steps)
+        df['obs'] = (df.obs == 1.0)
+        return df
+
+# Glucose data ----------------------------------------------------
+
+@jit(nopython=True)
+def _Gluc_temporal_process(glucose:float,insulin_dose:float):
     """
     Next observation time
     """
@@ -26,7 +130,7 @@ def _temporal_process(glucose:float,insulin_dose:float):
     return time
 
 @jit(nopython=True)
-def _insulin_policy(glucose:float,insulin_dose:float=0.0):
+def _Gluc_insulin_policy(glucose:float,insulin_dose:float=0.0):
     """
     dose over an hour
     """
@@ -41,7 +145,7 @@ def _insulin_policy(glucose:float,insulin_dose:float=0.0):
     return dose_hr / 60.0
 
 @jit(nopython=True)
-def _dextrose_policy(t:float):
+def _Gluc_dextrose_policy(t:float):
     """
     """
     if np.random.random() > 0.9:
@@ -51,7 +155,7 @@ def _dextrose_policy(t:float):
     return glucose_mg_min / 50.0
 
 @jit(nopython=True)
-def _simulate_trajectory(sigma_m:float=0.0):
+def _Gluc_simulate_trajectory(sigma_m:float=0.0):
 
     dt = 0.01
     maxtime = 24.0
@@ -87,9 +191,9 @@ def _simulate_trajectory(sigma_m:float=0.0):
     while iter <= n_iter:
         if iter == iter_measure:
             obs = True
-            dextrose_t = _dextrose_policy(iter * dt)
-            insulin_t = _insulin_policy(glucose_t,insulin_t)
-            delta_t = _temporal_process(glucose_t,insulin_t)
+            dextrose_t = _Gluc_dextrose_policy(iter * dt)
+            insulin_t = _Gluc_insulin_policy(glucose_t,insulin_t)
+            delta_t = _Gluc_temporal_process(glucose_t,insulin_t)
             iter_measure = min(iter + int(np.round(delta_t/dt,-1)),n_iter)
             
         else:
@@ -114,7 +218,7 @@ def _simulate_trajectory(sigma_m:float=0.0):
     return output
 
 @jit(nopython=True)
-def _simulate(N:int,sigm_m:float=0.0,seed:int=None):
+def _Gluc_simulate(N:int,sigm_m:float=0.0,seed:int=None):
 
     np.random.seed(seed)
 
@@ -125,13 +229,12 @@ def _simulate(N:int,sigm_m:float=0.0,seed:int=None):
     output = np.zeros((n_save_steps*N, 6))
 
     for i in range(N):
-        output_i = _simulate_trajectory(sigm_m)
+        output_i = _Gluc_simulate_trajectory(sigm_m)
         lower = i*n_save_steps
         upper = (i+1)*n_save_steps
         output[lower:upper,:] = output_i
 
     return output
-
 
 class GlucoseData:
     
@@ -150,25 +253,14 @@ class GlucoseData:
         self.columns = ['t','glucose_t','glucose_t_obs',
                        'obs','insulin_t','dextrose_t']
 
-    # def simulate_trajectory(self):
-    #     output = _simulate_trajectory(self.sigma_m)
-    #     return output
-
     def simulate(self,N:int=100):
 
         # output container
         n_iter = int(self.maxtime / self.dt) + 1
         saveat = range(0,n_iter,int(0.1 / self.dt))
         n_save_steps = len(saveat)
-        # output = np.zeros((n_save_steps*N, 6))
 
-        output = _simulate(N,self.sigma_m,self.seed)
-
-        # for i in range(N):
-        #     output_i = self.simulate_trajectory()
-        #     lower = i*n_save_steps
-        #     upper = (i+1)*n_save_steps
-        #     output[lower:upper,:] = output_i
+        output = _Gluc_simulate(N,self.sigma_m,self.seed)
 
         df = pd.DataFrame(output,columns=self.columns)
         df['id'] = np.repeat(range(0,N),n_save_steps)
