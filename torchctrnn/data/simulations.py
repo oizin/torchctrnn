@@ -93,7 +93,7 @@ class OrnsteinUhlenbeckData:
         self.maxtime = 24.0
         self.columns = ['t','y_t','obs']
 
-    def simulate(self,N:int=100):
+    def simulate(self,N:int=100): # TODO: the seed should be here!
 
         # output container
         n_iter = int(self.maxtime / self.dt) + 1
