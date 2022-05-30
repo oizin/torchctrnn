@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "torchctrnn"
-version = "0.0.2"
+version = "0.0.3"
 description = "A PyTorch library dedicated to continuous time recurrent neural networks"
 authors = ["Oisin Fitzgerald <o.fitzgerald@unsw.edu.au>"]
 license = "MIT"

@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
   name = 'torchctrnn',       
   packages = ['torchctrnn'],   
-  version = '0.0.2',     
+  version = '0.0.3',     
   license='MIT',        
   description = 'Lightweight package for using neural ODE based continuous time RNNs and related methods with pytorch and torchdiffeq',   
   author = 'Oisin Fitzgerald',                   
