@@ -35,11 +35,10 @@ class _UpdateNNBase(nn.Module):
 
 class _CTRNNBase(nn.Module):
 
-    def __init__(self,UpdateNN,device):
+    def __init__(self,UpdateNN):
         super(_CTRNNBase,self).__init__()
 
         self.updateNN = _UpdateNNBase(UpdateNN)
-        self.device = device
 
     def forward(self,input_update,hidden,times,input_ode=None,n_intermediate=0):
         """forward

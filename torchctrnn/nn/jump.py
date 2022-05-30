@@ -12,8 +12,8 @@ class JumpODECell(_ODERNNBase):
     Returns:
         The return value. True for success, False otherwise.
     """
-    def __init__(self,UpdateNN,ODENet,output_size=1,device='cpu',method='dopri5',tol={'rtol':1e-2,'atol':1e-2},options=dict()):
-        _ODERNNBase.__init__(self,UpdateNN,ODENet,output_size,device,method,tol,options,dt_scaler)
+    def __init__(self,UpdateNN,ODENet,output_size=1,method='dopri5',tol={'rtol':1e-2,'atol':1e-2},options=dict()):
+        _ODERNNBase.__init__(self,UpdateNN,ODENet,output_size,method,tol,options,dt_scaler)
         
         
     def forward_update(self,input_update):

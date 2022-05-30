@@ -76,8 +76,8 @@ class _ODERNNBase(_CTRNNBase):
         Tensor
     """
     
-    def __init__(self,UpdateNN:nn.Module,NeuralODE:NeuralODE,device='cpu'):
-        super(_ODERNNBase,self).__init__(UpdateNN,device)
+    def __init__(self,UpdateNN:nn.Module,NeuralODE:NeuralODE):
+        super(_ODERNNBase,self).__init__(UpdateNN)
         
         self.NeuralODE = NeuralODE
         self.time_func = NeuralODE.time_func

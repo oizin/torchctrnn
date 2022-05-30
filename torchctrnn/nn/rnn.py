@@ -2,6 +2,8 @@ from ..core.odernn import _ODERNNBase
 from ..core.ctrnn import _CTRNNBase
 from ..core.odenet import NeuralODE
 from ..core.flownet import NeuralFlow
+from ..core.flowrnn import _FlowRNNBase
+#from ..core.flownet import NeuralFlow
 
 import torch 
 from torch import Tensor
@@ -18,8 +20,8 @@ class neuralJumpODECell(_ODERNNBase):
     Returns:
         The return value. True for success, False otherwise.
     """
-    def __init__(self,UpdateNN,ODENet,device=None):
-        _ODERNNBase.__init__(self,UpdateNN,ODENet,device)
+    def __init__(self,UpdateNN,ODENet):
+        _ODERNNBase.__init__(self,UpdateNN,ODENet)
 
 class CTRNNCell(_CTRNNBase):
     """
@@ -27,13 +29,13 @@ class CTRNNCell(_CTRNNBase):
 
     TODO
     """
-    def __init__(self,VectorField:Union[NeuralODE,NeuralFlow],input_size_update:int,hidden_size:int,device=None):
-        rnn = nn.RNNCell(input_size_update,hidden_size,device)
+    def __init__(self,VectorField:Union[NeuralODE,NeuralFlow],input_size_update:int,hidden_size:int):
+        rnn = nn.RNNCell(input_size_update,hidden_size)
         assert isinstance(VectorField,(NeuralODE,NeuralFlow))
         if isinstance(VectorField,NeuralODE):
-            _ODERNNBase.__init__(self,rnn,VectorField,device)
+            _ODERNNBase.__init__(self,rnn,VectorField)
         elif isinstance(VectorField,NeuralFlow):
-            _FlowRNNBase.__init__(self,rnn,VectorField,device)
+            _FlowRNNBase.__init__(self,rnn,VectorField)
 
 class ODERNNCell(_ODERNNBase):
     """
@@ -53,25 +55,33 @@ class ODERNNCell(_ODERNNBase):
     odernn(input_update,hidden,times)  
     ```
     """
-    def __init__(self,NeuralODE,input_size_update:int,hidden_size:int,device=None):
-        rnn = nn.RNNCell(input_size_update,hidden_size,device)
-        _ODERNNBase.__init__(self,rnn,NeuralODE,device)
+    def __init__(self,NeuralODE,input_size_update:int,hidden_size:int):
+        rnn = nn.RNNCell(input_size_update,hidden_size)
+        _ODERNNBase.__init__(self,rnn,NeuralODE)
         
 class ODEGRUCell(_ODERNNBase):
     """
     ODEGRUCell
     """
-    def __init__(self,NeuralODE,input_size_update:int,hidden_size:int,device=None):
-        rnn = nn.GRUCell(input_size_update,hidden_size,device)
-        _ODERNNBase.__init__(self,rnn,NeuralODE,device)
-        
+    def __init__(self,NeuralODE,input_size_update:int,hidden_size:int):
+        rnn = nn.GRUCell(input_size_update,hidden_size)
+        _ODERNNBase.__init__(self,rnn,NeuralODE)
+
+class FlowGRUCell(_ODERNNBase):
+    """
+    ODEGRUCell
+    """
+    def __init__(self,NeuralFlow,input_size_update:int,hidden_size:int):
+        rnn = nn.GRUCell(input_size_update,hidden_size)
+        _FlowRNNBase.__init__(self,rnn,NeuralFlow)
+
 class ODELSTMCell(_ODERNNBase):
     """
     ODELSTMCell
     """
-    def __init__(self,NeuralODE,input_size_update:int,hidden_size:int,device=None):
-        rnn = nn.LSTMCell(input_size_update,hidden_size,device)
-        _ODERNNBase.__init__(self,rnn,NeuralODE,device)
+    def __init__(self,NeuralODE,input_size_update:int,hidden_size:int):
+        rnn = nn.LSTMCell(input_size_update,hidden_size)
+        _ODERNNBase.__init__(self,rnn,NeuralODE)
         
     def forward_update(self,input_update : Tensor,hidden : Tuple[Tensor,Tensor]) -> Tensor:
         """
