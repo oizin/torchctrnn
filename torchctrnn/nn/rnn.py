@@ -67,7 +67,7 @@ class ODEGRUCell(_ODERNNBase):
         rnn = nn.GRUCell(input_size_update,hidden_size)
         _ODERNNBase.__init__(self,rnn,NeuralODE)
 
-class FlowGRUCell(_ODERNNBase):
+class FlowGRUCell(_FlowRNNBase):
     """
     ODEGRUCell
     """
