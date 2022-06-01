@@ -101,3 +101,30 @@ class ODELSTMCell(_ODERNNBase):
         # use ODENet to 'evolve' hidden state (but not cell state) to next timestep
         output = self.forward_ode(hidden,times,input_ode,n_intermediate)
         return output,cell
+    
+    class FlowLSTMCell(_ODERNNBase):
+    """
+    FlowLSTMCell
+    """
+    def __init__(self,NeuralFlow,input_size_update:int,hidden_size:int):
+        rnn = nn.LSTMCell(input_size_update,hidden_size)
+        _FlowRNNBase.__init__(self,rnn,NeuralFlow)
+        
+    def forward_update(self,input_update : Tensor,hidden : Tuple[Tensor,Tensor]) -> Tensor:
+        """
+        forward_update
+        """
+        output = self.updateNN(input_update,hidden)
+        return output
+    
+    def forward(self,input_update : Tensor,hidden : Tuple[Tensor,Tensor],times,input_ode=None,n_intermediate=0) -> Tuple[Tensor,Tensor]:   
+        """ 
+        forward
+        """
+        if (type(hidden) != tuple):
+            raise ValueError("h_0 should be a tuple of (hidden state, cell state)")
+        # discrete update/jump as new information receieved
+        hidden,cell = self.forward_update(input_update,hidden)
+        # use ODENet to 'evolve' hidden state (but not cell state) to next timestep
+        output = self.forward_ode(hidden,times,input_ode,n_intermediate)
+        return output,cell
