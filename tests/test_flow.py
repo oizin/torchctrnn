@@ -2,7 +2,7 @@ from os import times_result
 import unittest
 import torch
 import torch.nn as nn
-from torchctrnn import ResNetFlow,NeuralFlow,FlowGRUCell
+from torchctrnn import ResNetFlow,NeuralFlow,FlowGRUCell,FlowLSTMCell
 
 class TestResNetFlow(unittest.TestCase):
 
@@ -21,6 +21,13 @@ class TestResNetFlow(unittest.TestCase):
         # exogeneous inputs
         self.input_1 = torch.randn((1,self.input_size))
         self.input_32 = torch.randn((32,self.input_size))
+        # hidden / cell state
+        self.hidden_1 = torch.randn((1,self.hidden_size))
+        self.hidden_32 = torch.randn((32,self.hidden_size))
+        self.hidden_1000 = torch.randn((1000,self.hidden_size))
+        self.cell_1 = torch.randn((1,self.hidden_size))
+        self.cell_32 = torch.randn((32,self.hidden_size))
+
 
     def test_resnet_flow(self):
         # nets
@@ -82,6 +89,25 @@ class TestFlowRNN(unittest.TestCase):
             h_32 = rnnflow(self.update_input_32,self.hidden_32,self.times_32)
             self.assertIsInstance(h_32,torch.Tensor)
             self.assertEqual(h_32.size(),torch.Size([32,self.hidden_size]))
+
+    def test_flowlstm(self):
+        """
+        Check FlowLSTMCell
+        """
+        resnetflow = ResNetFlow(self.hidden_size,50)
+        neuralflow = NeuralFlow(resnetflow)
+        odernn = FlowLSTMCell(neuralflow,self.update_input_size,self.hidden_size)
+        h_1,c_1 = odernn(self.update_input_1,(self.hidden_1,self.cell_1),self.times_1)
+        self.assertIsInstance(h_1,torch.Tensor)
+        self.assertIsInstance(c_1,torch.Tensor)
+        self.assertEqual(h_1.size(),torch.Size([1,self.hidden_size]))
+        self.assertEqual(c_1.size(),torch.Size([1,self.hidden_size]))
+        h_32,c_32 = odernn(self.update_input_32,(self.hidden_32,self.cell_32),self.times_32)
+        self.assertIsInstance(h_32,torch.Tensor)
+        self.assertIsInstance(c_32,torch.Tensor)
+        self.assertEqual(h_32.size(),torch.Size([32,self.hidden_size]))
+        self.assertEqual(c_32.size(),torch.Size([32,self.hidden_size]))
+
 
 if __name__ == '__main__':
     unittest.main()

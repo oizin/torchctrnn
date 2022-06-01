@@ -102,7 +102,7 @@ class ODELSTMCell(_ODERNNBase):
         output = self.forward_ode(hidden,times,input_ode,n_intermediate)
         return output,cell
     
-class FlowLSTMCell(_ODERNNBase):
+class FlowLSTMCell(_FlowRNNBase):
     """
     FlowLSTMCell
     """
