@@ -1,7 +1,7 @@
 import unittest
 import torch
 import torch.nn as nn
-from torchctrnn import NeuralODE,ODERNNCell,ODEGRUCell,ODELSTMCell
+from torchctrnn import NeuralODE,ODERNNCell,ODEGRUCell,ODELSTMCell,neuralJumpODECell
 
 class TestODERNNBase(unittest.TestCase):
 
@@ -55,6 +55,40 @@ class TestODERNNBase(unittest.TestCase):
             h_32 = odernn(self.update_input_32,self.hidden_32,self.times_32)
             self.assertIsInstance(h_32,torch.Tensor)
             self.assertEqual(h_32.size(),torch.Size([32,self.hidden_size]))
+            
+    def test_jumpode(self):
+        """
+        Check neuralJumpODECell
+        """
+        class UpdateNet(nn.Module):
+            def __init__(self,update_input_size,hidden_dim):
+                super().__init__()
+                self.hidden_size = hidden_dim
+                self.net = nn.Sequential(
+                    nn.Linear(update_input_size, 50),
+                    nn.Tanh(),
+                    nn.Linear(50, hidden_dim)
+                )
+            def forward(self,input,hidden):
+                output = hidden + self.net(input)
+                return output
+
+        check_nets = [neuralJumpODECell]
+        for net in check_nets:
+            func = nn.Sequential(
+                nn.Linear(self.hidden_size, 50),
+                nn.Tanh(),
+                nn.Linear(50, self.hidden_size)
+            )
+            jump = UpdateNet(self.update_input_size,self.hidden_size)
+            odenet = NeuralODE(func,time_dependent=False,data_dependent=False)
+            odernn = net(jump,odenet)
+            h_1 = odernn(self.update_input_1,self.hidden_1,self.times_1)
+            self.assertIsInstance(h_1,torch.Tensor)
+            self.assertEqual(h_1.size(),torch.Size([1,self.hidden_size]))
+            h_32 = odernn(self.update_input_32,self.hidden_32,self.times_32)
+            self.assertIsInstance(h_32,torch.Tensor)
+            self.assertEqual(h_32.size(),torch.Size([32,self.hidden_size]))
 
     def test_odelstm(self):
         """
@@ -82,11 +116,6 @@ class TestODERNNBase(unittest.TestCase):
         """
         backend='torchdiffeq',solver='euler',atol:float=1e-3, rtol:float=1e-3,**solver_options
         """
-        func = nn.Sequential(
-            nn.Linear(self.hidden_size, 50),
-            nn.Tanh(),
-            nn.Linear(50, self.hidden_size)
-        )
         check_nets = [ODERNNCell,ODEGRUCell]
         for net in check_nets:
             func = nn.Sequential(
