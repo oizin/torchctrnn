@@ -3,7 +3,7 @@ File dependency structure:
 
 
 """
-from .nn.rnn import ODERNNCell,ODEGRUCell,ODELSTMCell,neuralJumpODECell,FlowGRUCell
+from .nn.rnn import ODERNNCell,ODEGRUCell,ODELSTMCell,neuralJumpODECell,FlowGRUCell,FlowLSTMCell
 from .core.odenet import NeuralODE
 from .core.flownet import ResNetFlow,NeuralFlow
 __all__ = []
