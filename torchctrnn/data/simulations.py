@@ -80,27 +80,24 @@ def _OE_simulate(N:int,seed:int=None):
 
 class OrnsteinUhlenbeckData:
     
-    def __init__(self,seed=None):
+    def __init__(self):
         """
         Args:
             seed
         """
-        # arguments
-        self.seed = seed
-
         # other
         self.dt = 0.01
         self.maxtime = 24.0
         self.columns = ['t','y_t','obs']
 
-    def simulate(self,N:int=100): # TODO: the seed should be here!
+    def simulate(self,N:int=100,seed=None): # TODO: the seed should be here!
 
         # output container
         n_iter = int(self.maxtime / self.dt) + 1
         saveat = range(0,n_iter,int(0.1 / self.dt))
         n_save_steps = len(saveat)
 
-        output = _OE_simulate(N,self.seed)
+        output = _OE_simulate(N,seed)
 
         df = pd.DataFrame(output,columns=self.columns)
         df['id'] = np.repeat(range(0,N),n_save_steps)
@@ -245,7 +242,6 @@ class GlucoseData:
         """
         # arguments
         self.sigma_m = measurement_error
-        self.seed = seed
 
         # other
         self.dt = 0.01
@@ -253,14 +249,14 @@ class GlucoseData:
         self.columns = ['t','glucose_t','glucose_t_obs',
                        'obs','insulin_t','dextrose_t']
 
-    def simulate(self,N:int=100):
+    def simulate(self,N:int=100,seed=None):
 
         # output container
         n_iter = int(self.maxtime / self.dt) + 1
         saveat = range(0,n_iter,int(0.1 / self.dt))
         n_save_steps = len(saveat)
 
-        output = _Gluc_simulate(N,self.sigma_m,self.seed)
+        output = _Gluc_simulate(N,self.sigma_m,seed)
 
         df = pd.DataFrame(output,columns=self.columns)
         df['id'] = np.repeat(range(0,N),n_save_steps)
