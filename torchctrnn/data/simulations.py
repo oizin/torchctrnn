@@ -204,6 +204,8 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
             insulin_t = _Gluc_insulin_policy(glucose_t,insulin_t)
             delta_t = _Gluc_temporal_process(glucose_t,insulin_t)
             iter_measure = min(iter + int(np.round(delta_t/dt,-1)),n_iter)
+            glucose_t_pop_save = glucose_t_pop
+            glucose_t_ind_save = glucose_t_ind
             glucose_t_pop = glucose_t
             glucose_t_ind = glucose_t
         else:
@@ -220,6 +222,8 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
         glucose_t = glucose_t + d_glucose
         glucose_t_ind = glucose_t_ind + d_glucose_ind
         glucose_t_pop = glucose_t_pop + d_glucose_pop
+        glucose_t_ind_save = glucose_t_ind_save + d_glucose_ind
+        glucose_t_pop_save = glucose_t_pop_save + d_glucose_pop
         glucose_t_obs = np.exp(np.random.normal(np.log(glucose_t),sigma_m))
 
         if iter in saveat:
@@ -228,10 +232,13 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
             output[save_step,column_name_pos['obs']] = obs
             output[save_step,column_name_pos['insulin_t']] = insulin_t
             output[save_step,column_name_pos['dextrose_t']] = dextrose_t 
-            output[save_step,column_name_pos['glucose_t_ind']] = glucose_t_ind
-            output[save_step,column_name_pos['glucose_t_pop']] = glucose_t_pop
+            output[save_step,column_name_pos['glucose_t_ind']] = glucose_t_ind_save
+            output[save_step,column_name_pos['glucose_t_pop']] = glucose_t_pop_save
             save_step += 1
         iter += 1
+
+        glucose_t_ind_save = glucose_t_ind
+        glucose_t_pop_save = glucose_t_pop
 
     return output
 
