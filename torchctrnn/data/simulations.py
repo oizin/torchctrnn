@@ -105,6 +105,10 @@ class OrnsteinUhlenbeckData:
         return df
 
 # Glucose data ----------------------------------------------------
+"""
+Simulating irregularly measured blood glucose
+Model based on: 
+"""
 
 @jit(nopython=True)
 def _Gluc_temporal_process(glucose:float,insulin_dose:float):
@@ -165,17 +169,22 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
                        'glucose_t_obs':2,
                        'obs':3,
                        'insulin_t':4,
-                       'dextrose_t':5}
+                       'dextrose_t':5,
+                       'glucose_t_ind':6,
+                       'glucose_t_pop':7}
     output = np.zeros((len(saveat), len(column_name_pos)))
     output[:,column_name_pos['t']] = np.linspace(0,maxtime,len(saveat))
 
     # set parameters
-    beta = -np.random.normal(50,5)
+    beta_mean = 50.0
+    beta = -np.random.normal(beta_mean,5.0)
     sigma = np.random.normal(20.0,2)
-    mu = np.random.normal(140,5)
-    theta = np.random.normal(0.5,0.01)
+    mu_mean = 140.0
+    mu = np.random.normal(mu_mean,5.0)
+    theta_mean = 0.5
+    theta = np.random.normal(theta_mean,0.01)
     
-    # time 0
+    # time 0 - individual
     insulin_t = 0.0
     glucose_t = np.random.normal(140,20)
     glucose_t_obs = np.exp(np.random.normal(np.log(glucose_t),sigma_m))
@@ -183,6 +192,9 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
     save_step = 0
     iter_measure = 0
     obs = False
+    # predictions
+    glucose_t_ind = glucose_t
+    glucose_t_pop = glucose_t
 
     ## loop through time steps
     while iter <= n_iter:
@@ -192,15 +204,22 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
             insulin_t = _Gluc_insulin_policy(glucose_t,insulin_t)
             delta_t = _Gluc_temporal_process(glucose_t,insulin_t)
             iter_measure = min(iter + int(np.round(delta_t/dt,-1)),n_iter)
-            
+            glucose_t_pop = glucose_t
+            glucose_t_ind = glucose_t
         else:
             obs = False
 
+        # change in glucose
         dW = np.random.normal(0,dt)
         d_glucose_deter = (theta*(mu - glucose_t) + beta*insulin_t + dextrose_t)*dt 
+        d_glucose_ind = (theta*(mu - glucose_t_ind) + beta*insulin_t + dextrose_t)*dt 
+        d_glucose_pop = (theta_mean*(mu_mean - glucose_t_pop) + beta_mean*insulin_t + dextrose_t)*dt
         d_glucose_stoch = np.sqrt(2*theta*sigma**2)*dW
         d_glucose = d_glucose_deter + d_glucose_stoch
+        # new values
         glucose_t = glucose_t + d_glucose
+        glucose_t_ind = glucose_t_ind + d_glucose_ind
+        glucose_t_pop = glucose_t_pop + d_glucose_pop
         glucose_t_obs = np.exp(np.random.normal(np.log(glucose_t),sigma_m))
 
         if iter in saveat:
@@ -209,13 +228,15 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
             output[save_step,column_name_pos['obs']] = obs
             output[save_step,column_name_pos['insulin_t']] = insulin_t
             output[save_step,column_name_pos['dextrose_t']] = dextrose_t 
+            output[save_step,column_name_pos['glucose_t_ind']] = glucose_t_ind
+            output[save_step,column_name_pos['glucose_t_pop']] = glucose_t_pop
             save_step += 1
         iter += 1
 
     return output
 
 @jit(nopython=True)
-def _Gluc_simulate(N:int,sigm_m:float=0.0,seed:int=None):
+def _Gluc_simulate(N:int,sigm_m:float=0.0,seed:int=None,ncols:int=8):
 
     np.random.seed(seed)
 
@@ -223,7 +244,7 @@ def _Gluc_simulate(N:int,sigm_m:float=0.0,seed:int=None):
     n_iter = int(24.0 / 1e-2) + 1
     saveat = range(0,n_iter,int(0.1 / 1e-2))
     n_save_steps = len(saveat)
-    output = np.zeros((n_save_steps*N, 6))
+    output = np.zeros((n_save_steps*N, ncols))
 
     for i in range(N):
         output_i = _Gluc_simulate_trajectory(sigm_m)
@@ -247,7 +268,8 @@ class GlucoseData:
         self.dt = 0.01
         self.maxtime = 24.0
         self.columns = ['t','glucose_t','glucose_t_obs',
-                       'obs','insulin_t','dextrose_t']
+                       'obs','insulin_t','dextrose_t',
+                       'glucose_t_ind','glucose_t_pop']
 
     def simulate(self,N:int=100,seed=None):
 
@@ -261,4 +283,5 @@ class GlucoseData:
         df = pd.DataFrame(output,columns=self.columns)
         df['id'] = np.repeat(range(0,N),n_save_steps)
         df['obs'] = (df.obs == 1.0)
+        df = df[['id'] + self.columns]
         return df
