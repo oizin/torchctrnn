@@ -7,6 +7,7 @@ import inspect
 from typing import Tuple, Callable,Union
 from .ctrnn import _CTRNNBase
 from .odenet import NeuralODE
+from .solve import odeint_batch
 
 # Notes
 # training data of shape: (batch,seq,features)
@@ -49,7 +50,8 @@ class _VectorField(nn.Module):
             # dh/ds=f(h)
             output = self.NeuralODE(hidden=z)
         # dh/dt
-        output = output*self.delta_t
+        if self.NeuralODE.backend == 'torchdiffeq':
+            output = output * self.delta_t            
         return output
 
 
@@ -90,11 +92,14 @@ class _ODERNNBase(_CTRNNBase):
         # dh/dt = dh/ds(h,...)*dt
         vector_field = _VectorField(self.NeuralODE,delta_t,times,input_ode)
         # TODO: next few lines are terrible - vary depending on if batch_size=1!
-        if n_intermediate > 1:  
-            limits = torch.linspace(0,1,2+n_intermediate)
-        else:
-            limits = torch.tensor([0,1.0])
-        output = self.solve_ode(vector_field,hidden,limits)
+        if self.NeuralODE.backend == 'torchdiffeq':
+            if n_intermediate > 1:  
+                limits = torch.linspace(0,1,2+n_intermediate)
+            else:
+                limits = torch.tensor([0,1.0])
+            output = self.solve_ode(vector_field,hidden,limits)
+        elif self.NeuralODE.backend == 'torchctrnn':
+            output = self.solve_ode(vector_field,hidden,self.time_func(times))
         return output
     
     def solve_ode(self,vector_field:_VectorField,hidden:Tensor,limits:Tensor):
@@ -102,11 +107,16 @@ class _ODERNNBase(_CTRNNBase):
         solve_ode
         """
         # numerical integration until next time step
-        # torchdiffeq backend
-        output = odeint(vector_field, hidden, limits,
-                        method=self.NeuralODE.solver,
-                        atol=self.NeuralODE.atol,rtol=self.NeuralODE.rtol,
-                        options=self.NeuralODE.solver_options)
-        output = output[1:].squeeze(0)
+        if self.NeuralODE.backend == 'torchdiffeq':
+            output = odeint(vector_field, hidden, limits,
+                            method=self.NeuralODE.solver,
+                            atol=self.NeuralODE.atol,rtol=self.NeuralODE.rtol,
+                            options=self.NeuralODE.solver_options)
+            output = output[1:].squeeze(0)
+        elif self.NeuralODE.backend == 'torchctrnn':
+            # torchctrnn backend (forward Euler)
+            output = odeint_batch(vector_field, hidden, limits,
+                                method=self.NeuralODE.solver,
+                                options=self.NeuralODE.solver_options)
         return output    
     

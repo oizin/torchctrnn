@@ -49,12 +49,22 @@ class _FlowRNNBase(_CTRNNBase):
         super(_FlowRNNBase,self).__init__(UpdateNN)
         
         self.vector_field = NeuralFlow
-                
+        self.has_input_arg = NeuralFlow.has_input_arg
+        self.has_times_arg = NeuralFlow.has_times_arg
+
     def forward_ode(self,hidden:Tensor,times:Tensor,input_ode:Tensor=None,n_intermediate:int=0) -> Tensor:
         """
         forward_ode
         """
         # enable input and time_gaps to be passed to the flow
         delta_t = times[:,1:2] - times[:,0:1]
-        output = self.vector_field.forward(hidden,delta_t,input_ode)
+        if self.has_times_arg:
+            if self.has_input_arg:
+                output = self.vector_field.forward(hidden=hidden,times=times,delta_t=delta_t,input_ode=input_ode)
+            else:
+                output = self.vector_field.forward(hidden=hidden,times=times,delta_t=delta_t)
+        elif self.has_input_arg:
+            output = self.vector_field.forward(hidden=hidden,delta_t=delta_t,input_ode=input_ode)
+        else:
+            output = self.vector_field.forward(hidden=hidden,delta_t=delta_t)
         return output

@@ -23,19 +23,27 @@ class neuralJumpODECell(_ODERNNBase):
     def __init__(self,UpdateNN,ODENet):
         _ODERNNBase.__init__(self,UpdateNN,ODENet)
 
-class CTRNNCell(_CTRNNBase):
-    """
-    CTRNNCell
+# class CTRNNCell(_CTRNNBase):
+#     """
+#     CTRNNCell
 
-    TODO
+#     TODO
+#     """
+#     def __init__(self,VectorField:Union[NeuralODE,NeuralFlow],input_size_update:int,hidden_size:int):
+#         rnn = nn.RNNCell(input_size_update,hidden_size)
+#         assert isinstance(VectorField,(NeuralODE,NeuralFlow))
+#         if isinstance(VectorField,NeuralODE):
+#             _ODERNNBase.__init__(self,rnn,VectorField)
+#         elif isinstance(VectorField,NeuralFlow):
+#             _FlowRNNBase.__init__(self,rnn,VectorField)
+
+class FlowRNNCell(_FlowRNNBase):
     """
-    def __init__(self,VectorField:Union[NeuralODE,NeuralFlow],input_size_update:int,hidden_size:int):
+    FlowRNNCell
+    """
+    def __init__(self,NeuralFlow,input_size_update:int,hidden_size:int):
         rnn = nn.RNNCell(input_size_update,hidden_size)
-        assert isinstance(VectorField,(NeuralODE,NeuralFlow))
-        if isinstance(VectorField,NeuralODE):
-            _ODERNNBase.__init__(self,rnn,VectorField)
-        elif isinstance(VectorField,NeuralFlow):
-            _FlowRNNBase.__init__(self,rnn,VectorField)
+        _FlowRNNBase.__init__(self,rnn,NeuralFlow)
 
 class ODERNNCell(_ODERNNBase):
     """

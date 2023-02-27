@@ -5,18 +5,6 @@ from . import utils
 from typing import Callable,Union
 import inspect
 
-def _inspect_nn_args(args):
-    check_args = ['self','input', 't', 'hidden']
-    assert 'hidden' in args
-    # check for ['input', 't', 'hidden'] pattern in forward
-    extra_args = [a for a in args if a not in check_args]
-    if len(extra_args) > 0:
-        raise Warning("NeuralODE's forward method only takes args: hidden,t and input. You also have {}".format(extra_args))
-    # check for ['input', 't', 'hidden'] pattern in forward
-    check_res = [chk for chk in check_args if chk not in args]
-    if len(check_res) > 0:
-        print("NeuralODE's forward method missing args: {}. These are assumed not applicable".format(check_res))
-
 class NeuralODE(nn.Module):
 
     def __init__(self,vector_field:Union[nn.Module,nn.Sequential],time_func='none',time_dependent=None,data_dependent=None,backend='torchdiffeq',solver='dopri5',atol:float=1e-3, rtol:float=1e-3,solver_options={}):
@@ -29,11 +17,11 @@ class NeuralODE(nn.Module):
         else:
             self.sequential = False
             args = inspect.getfullargspec(vector_field.forward)[0]
-            _inspect_nn_args(args)
+            utils._inspect_nn_args(args)
             if 'input' in args:
-                self.has_input_arg = True
+                data_dependent = True 
             if 't' in args:
-                self.has_t_arg = True
+                time_dependent = True
         # properties
         self.vector_field = vector_field
         self.solver = solver
