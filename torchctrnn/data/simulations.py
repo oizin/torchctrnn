@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import random
 import math
-#from numba import jit
+from numba import jit
 import typing
 
 # globals
@@ -10,7 +10,7 @@ DT = 1e-2
 
 # Ornstein Uhlenbeck ----------------------------------------------
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def _OE_simulate_trajectory():
 
     dt = 0.01
@@ -59,7 +59,7 @@ def _OE_simulate_trajectory():
 
     return output
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def _OE_simulate(N:int,seed:int=None):
 
     np.random.seed(seed)
@@ -106,7 +106,7 @@ class OrnsteinUhlenbeckData:
 
 # Glucose data ----------------------------------------------------
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def _Gluc_temporal_process(glucose:float,insulin_dose:float):
     """
     Next observation time
@@ -126,7 +126,7 @@ def _Gluc_temporal_process(glucose:float,insulin_dose:float):
     time = np.exp(log_time)
     return time
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def _Gluc_insulin_policy(glucose:float,insulin_dose:float=0.0):
     """
     dose over an hour
@@ -141,7 +141,7 @@ def _Gluc_insulin_policy(glucose:float,insulin_dose:float=0.0):
         dose_hr = 30.0
     return dose_hr / 60.0
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def _Gluc_dextrose_policy(t:float):
     """
     """
@@ -151,7 +151,7 @@ def _Gluc_dextrose_policy(t:float):
         glucose_mg_min = 0.0
     return glucose_mg_min / 50.0
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def _Gluc_simulate_trajectory(sigma_m:float=0.0):
 
     dt = 0.01
@@ -214,7 +214,7 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
 
     return output
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def _Gluc_simulate(N:int,sigm_m:float=0.0,seed:int=None):
 
     np.random.seed(seed)
