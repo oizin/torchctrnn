@@ -17,7 +17,7 @@ class NeuralODE(nn.Module):
         else:
             self.sequential = False
             args = inspect.getfullargspec(vector_field.forward)[0]
-            utils._inspect_nn_args(args)
+            utils._inspect_node_args(args)
             if 'input' in args:
                 data_dependent = True 
             if 't' in args:
