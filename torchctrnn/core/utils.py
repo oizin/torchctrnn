@@ -30,13 +30,13 @@ def _inspect_node_args(args):
         print("NeuralODE's forward method missing args: {}. These are assumed not applicable".format(check_res))
 
 def _inspect_nf_args(args):
-    check_args = ['hidden','times','delta_t','input_ode']
+    check_args = ['self','hidden','times','delta_t','input_ode']
     assert 'hidden' in args
-    # check for ['input', 'delta_t', 'hidden'] pattern in forward
+    # check for [hidden,times,delta_t,input_ode] pattern in forward
     extra_args = [a for a in args if a not in check_args]
     if len(extra_args) > 0:
-        raise Warning("NeuralFlow's forward method only takes args: hidden,t and input. You also have {}".format(extra_args))
-    # check for ['input', 'delta_t', 'hidden'] pattern in forward
+        raise Warning("NeuralFlow's forward method only takes args: hidden,times,delta_t,input_ode. You also have {}".format(extra_args))
+    # check for [hidden,times,delta_t,input_ode] pattern in forward
     check_res = [chk for chk in check_args if chk not in args]
     if len(check_res) > 0:
         print("NeuralFlow's forward method missing args: {}. These are assumed not applicable".format(check_res))
