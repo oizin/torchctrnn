@@ -45,14 +45,6 @@ class NeuralFlow(nn.Module):
             output = self.flow.forward(*args,**kwargs)
         return output
 
-#     def forward(self,*args,**kwargs):
-#         if self.sequential:
-#             z = torch.cat(args + tuple(kwargs.values()),1) 
-#             output = self.vector_field.forward(z)
-#         else:
-#             output = self.vector_field.forward(*args,**kwargs)
-#         return output
-
 # class ResNetFlow(nn.Module):
 #     def __init__(self,input_size,hidden_size,n_power_iterations=1):
 #         super(ResNetFlow,self).__init__()

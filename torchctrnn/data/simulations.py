@@ -152,7 +152,16 @@ def _Gluc_dextrose_policy(t:float):
     return glucose_mg_min / 50.0
 
 @jit(nopython=True)
-def _Gluc_simulate_trajectory(sigma_m:float=0.0):
+def beta_(t:float,beta:float,nonstationary:int) -> float:
+    if nonstationary == 0:
+        return(beta)
+    elif nonstationary == 1:
+        s = np.random.normal(0,0.1)
+        out = beta*(0.75 + 0.5*np.sin((s*t) / 12)) + 0.1*np.random.normal(0,1.0)
+        return(out)
+
+@jit(nopython=True)
+def _Gluc_simulate_trajectory(sigma_m:float=0.0,nonstationary:int=0):
 
     dt = 0.01
     maxtime = 24.0
@@ -197,7 +206,7 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
             obs = False
 
         dW = np.random.normal(0,dt)
-        d_glucose_deter = (theta*(mu - glucose_t) + beta*insulin_t + dextrose_t)*dt 
+        d_glucose_deter = (theta*(mu - glucose_t) + beta_(iter * dt,beta,nonstationary) * insulin_t + dextrose_t)*dt 
         d_glucose_stoch = np.sqrt(2*theta*sigma**2)*dW
         d_glucose = d_glucose_deter + d_glucose_stoch
         glucose_t = glucose_t + d_glucose
@@ -215,7 +224,7 @@ def _Gluc_simulate_trajectory(sigma_m:float=0.0):
     return output
 
 @jit(nopython=True)
-def _Gluc_simulate(N:int,sigm_m:float=0.0,seed:int=None):
+def _Gluc_simulate(N:int,sigm_m:float=0.0,nonstationary:int=0,seed:int=None):
 
     np.random.seed(seed)
 
@@ -226,7 +235,7 @@ def _Gluc_simulate(N:int,sigm_m:float=0.0,seed:int=None):
     output = np.zeros((n_save_steps*N, 6))
 
     for i in range(N):
-        output_i = _Gluc_simulate_trajectory(sigm_m)
+        output_i = _Gluc_simulate_trajectory(sigm_m,nonstationary)
         lower = i*n_save_steps
         upper = (i+1)*n_save_steps
         output[lower:upper,:] = output_i
@@ -235,13 +244,14 @@ def _Gluc_simulate(N:int,sigm_m:float=0.0,seed:int=None):
 
 class GlucoseData:
     
-    def __init__(self,measurement_error:float=0.0,seed=None):
+    def __init__(self,measurement_error:float=0.0,nonstationary:int=0,seed=None):
         """
         Args:
             measurement_error
         """
         # arguments
         self.sigma_m = measurement_error
+        self.nonstationary = nonstationary
 
         # other
         self.dt = 0.01
@@ -256,7 +266,7 @@ class GlucoseData:
         saveat = range(0,n_iter,int(0.1 / self.dt))
         n_save_steps = len(saveat)
 
-        output = _Gluc_simulate(N,self.sigma_m,seed)
+        output = _Gluc_simulate(N,self.sigma_m,self.nonstationary,seed)
 
         df = pd.DataFrame(output,columns=self.columns)
         df['id'] = np.repeat(range(0,N),n_save_steps)
