@@ -11,6 +11,8 @@ class TestGLucose(unittest.TestCase):
         df2 = sim1.simulate(1,seed=1234)
         sim2 = GlucoseData()
         df3 = sim2.simulate(1,seed=1234)
+        sim3 = GlucoseData(nonstationary=1)
+        df4 = sim3.simulate(1,seed=1234)
 
         self.assertEqual(df1.glucose_t[0], df2.glucose_t[0])
         self.assertEqual(df1.glucose_t[0], df3.glucose_t[0])

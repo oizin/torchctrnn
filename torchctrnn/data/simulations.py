@@ -154,11 +154,10 @@ def _Gluc_dextrose_policy(t:float):
 @jit(nopython=True)
 def beta_(t:float,beta:float,nonstationary:int) -> float:
     if nonstationary == 0:
-        return(beta)
+        out = beta
     elif nonstationary == 1:
-        s = np.random.normal(0,0.1)
-        out = beta*(0.75 + 0.5*np.sin((s*t) / 12)) + 0.1*np.random.normal(0,1.0)
-        return(out)
+        out = beta*(0.75 + (0.5 + 0.1*np.random.normal())*np.sin(t / (4+0.1*np.random.normal())))
+    return(out)
 
 @jit(nopython=True)
 def _Gluc_simulate_trajectory(sigma_m:float=0.0,nonstationary:int=0):
