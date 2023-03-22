@@ -83,12 +83,13 @@ class _ODERNNBase(_CTRNNBase):
         
         self.NeuralODE = NeuralODE
         self.time_func = NeuralODE.time_func
+        self.delta_t_func = NeuralODE.delta_t_func
                     
     def forward_ode(self,hidden:Tensor,times:Tensor,input_ode:Tensor=None,n_intermediate:int=0) -> Tensor:
         """
         forward_ode
         """
-        delta_t = self.time_func(times[:,1:2]) - self.time_func(times[:,0:1])
+        delta_t = self.delta_t_func(self.time_func(times[:,1:2]) - self.time_func(times[:,0:1]))
         # dh/dt = dh/ds(h,...)*dt
         vector_field = _VectorField(self.NeuralODE,delta_t,times,input_ode)
         # TODO: next few lines are terrible - vary depending on if batch_size=1!

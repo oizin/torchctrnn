@@ -12,10 +12,11 @@ def activation_func(activation):
     ])[activation]
 
 def time_func(func):
-    return  nn.ModuleDict([
-        ['tanh', nn.Tanh()],
-        ['none', nn.Identity()]
-    ])[func]
+    return {
+        'tanh':nn.Tanh(),
+        'none':nn.Identity(),
+        'log':torch.log
+    }[func]
 
 def _inspect_node_args(args):
     check_args = ['self','input', 't', 'hidden']

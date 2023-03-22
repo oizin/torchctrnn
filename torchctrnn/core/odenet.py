@@ -7,7 +7,7 @@ import inspect
 
 class NeuralODE(nn.Module):
 
-    def __init__(self,vector_field:Union[nn.Module,nn.Sequential],time_func='none',time_dependent=None,data_dependent=None,backend='torchdiffeq',solver='dopri5',atol:float=1e-3, rtol:float=1e-3,solver_options={}):
+    def __init__(self,vector_field:Union[nn.Module,nn.Sequential],time_func='none',delta_t_func='none',time_dependent=None,data_dependent=None,backend='torchdiffeq',solver='dopri5',atol:float=1e-3, rtol:float=1e-3,solver_options={}):
         super(NeuralODE,self).__init__()
         # check arguments
         if type(vector_field) == nn.Sequential:
@@ -35,6 +35,10 @@ class NeuralODE(nn.Module):
             self.time_func = utils.time_func(time_func)
         elif callable(time_func):
             self.time_func = time_func
+        if isinstance(delta_t_func,str):
+            self.delta_t_func = utils.time_func(delta_t_func)
+        elif callable(delta_t_func):
+            self.delta_t_func = delta_t_func
 
     def forward(self,*args,**kwargs):
         if self.sequential:
