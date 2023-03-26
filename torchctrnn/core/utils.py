@@ -11,6 +11,10 @@ def activation_func(activation):
         ['none', nn.Identity()]
     ])[activation]
 
+def torch_log1(x):
+    x1 = x + torch.tensor(1.0)
+    return(torch.log(x1))
+
 def time_func(func):
     return {
         'tanh':nn.Tanh(),
